@@ -24,17 +24,26 @@ func main() {
 		}
 	}
 
-	scanner := bufio.NewScanner(bytes.NewReader(b))
-	scanner.Split(bufio.ScanLines)
+	info, err := os.Stat(os.Args[len(os.Args)-1])
+	if err != nil {
+		os.Exit(127)
+	}
 
 	var lines [][2]string
-	for scanner.Scan() {
-		split := strings.SplitN(scanner.Text(), ":", 2)
-		if len(split) != 2 {
-			continue
-		}
+	if info.IsDir() {
+		scanner := bufio.NewScanner(bytes.NewReader(b))
+		scanner.Split(bufio.ScanLines)
 
-		lines = append(lines, [2]string{split[0], split[1]})
+		for scanner.Scan() {
+			split := strings.SplitN(scanner.Text(), ":", 2)
+			if len(split) != 2 {
+				continue
+			}
+
+			lines = append(lines, [2]string{split[0], split[1]})
+		}
+	} else {
+		lines = append(lines, [2]string{os.Args[len(os.Args)-1], string(b)})
 	}
 
 	p := tea.NewProgram(newModel(lines))
